@@ -8,9 +8,11 @@ import platform
 def getch(timeout=0.20):
     if platform.system() == "Windows":
         import msvcrt, time
+        startTime = time.time()
         while True:
             if msvcrt.kbhit():
-                return msvcrt.getch()
+                c = msvcrt.getch()
+                return str(c, encoding='ascii')
             elif time.time() - startTime > timeout:
                 return -1
     else:

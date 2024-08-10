@@ -1,10 +1,9 @@
 # TODO:
-# 1. add getch()
-# 2. add countdown timer
 # 3. add check argc and argv utility
+# 4. add readme.md and contribute.md
 
 import sys, os
-import time, datetime
+import time
 import tick_util as tutil
 
 
@@ -294,9 +293,9 @@ def main():
     tutil.clear_screen()
     tutil.cursor_invisible()
 
-    # clock(win, 30)
+    clock(win, 30)
     # stopwatch(win, 60)
-    countdown_timer(win, 60, time_value)
+    # countdown_timer(win, 60, time_value)
 
     tutil.cursor_visible()
     tutil.clear_screen()
