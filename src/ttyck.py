@@ -1,10 +1,12 @@
 # TODO:
-# 3. add check argc and argv utility
-# 4. add readme.md and contribute.md
+# 4. add readme.md and license
+# 5. add "stopped" text for countdown timer and stopwatch when stopping
 
-import sys, os
+import sys
 import time
-import tick_util as tutil
+import argparse
+import util as tutil
+from os import get_terminal_size
 
 
 DIGITS_WIDTH = 7
@@ -32,7 +34,7 @@ COLON = [
 
 
 class Term:
-    term_cols, term_rows = os.get_terminal_size()
+    term_cols, term_rows = get_terminal_size()
     center_row = term_rows//2 + 1
     center_col = term_cols//2 + 1
     size_has_changed = False
@@ -42,7 +44,7 @@ class Term:
 
     def updata_win_size(self):
         self.size_has_changed = False
-        col, row = os.get_terminal_size()
+        col, row = get_terminal_size()
         if col != self.term_cols or row != self.term_rows:
             self.size_has_changed = True
             self.term_cols = col
@@ -285,23 +287,72 @@ def countdown_timer(win:Term, fps:int, time_value:tuple):
             tutil.put_text(win.center_row+1, win.center_col - 5, "           ", tutil.Colors.fg.red)
 
 
-def main():
+def determine_mode(mode:str="timer", args:dict={}):
     win = Term()
-    time_value = (0, 0, 10)
 
     tutil.start_alt_buffer()
     tutil.clear_screen()
     tutil.cursor_invisible()
 
-    clock(win, 30)
-    # stopwatch(win, 60)
-    # countdown_timer(win, 60, time_value)
+    if mode == "clock":
+        clock(win, 30)
+    elif mode == "countdown":
+        countdown_timer(win, 60, args["time_len"])
+    elif mode == "stopwatch":
+        stopwatch(win, 60)
 
     tutil.cursor_visible()
     tutil.clear_screen()
     tutil.end_alt_buffer()
 
 
+def main():
+    # Instantiate the parser
+    parser = argparse.ArgumentParser(
+        prog="ttyck",
+        description="A terminal timer tool",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
 
-main()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-cl",
+                       "--clock",
+                       action='store_true',
+                       help="clock mode")
+    group.add_argument("-co",
+                       "--countdown",
+                       nargs=3,
+                       metavar=("HOUR", "MINUTE", "SECOND"),
+                       # type=int,
+                       help="countdown timer mode")
+    group.add_argument("-s",
+                       "--stopwatch",
+                       action='store_true',
+                       help="stopwatch mode")
+
+    parser.add_argument("--fps",
+                        default=30,
+                        help="set fps")
+
+    args = parser.parse_args()
+
+    print(args)
+    main_func_args = dict()
+    main_func_args["fps"] = args.fps
+
+    if args.clock == True:
+        pass
+        determine_mode("clock", main_func_args)
+    elif args.countdown != None:
+        pass
+        main_func_args["time_len"] = tuple([int(x) for x in args.countdown])
+        determine_mode("countdown", main_func_args)
+    elif args.stopwatch == True:
+        pass
+        determine_mode("stopwatch", main_func_args)
+
+
+
+if __name__ == '__main__':
+    main()
 
