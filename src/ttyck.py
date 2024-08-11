@@ -1,6 +1,6 @@
 # TODO:
 # 4. add readme.md and license
-# 5. add "stopped" text for countdown timer and stopwatch when stopping
+# 5. show "start" in stopwatch mode and countdown timer mode
 
 import sys
 import time
@@ -116,13 +116,12 @@ def rander_digit(win:Term, digit:str, pos:int):
 
 
 
-def clock(win:Term, fps:int):
+def clock(win:Term, delay_time:float):
     while True:
         sys.stdout.flush()
-        time.sleep(1/fps)
 
         # Process key press
-        keypress = tutil.getch()
+        keypress = tutil.getch(timeout=delay_time)
         if keypress != -1:
             if keypress == 'q' or keypress == '\033':
                 break
@@ -145,7 +144,7 @@ def clock(win:Term, fps:int):
                 rander_digit(win, digit, i)
                 i += 1
 
-def stopwatch(win:Term, fps:int):
+def stopwatch(win:Term, delay_time:float):
     hour = 0
     min  = 0
     sec  = 0
@@ -158,23 +157,34 @@ def stopwatch(win:Term, fps:int):
     last_time = time.time()
     while True:
         sys.stdout.flush()
-        time.sleep(1/fps)
+        # time.sleep(1/fps)
 
         # Process key press
-        keypress = tutil.getch()
+        keypress = tutil.getch(timeout=delay_time)
+        # keypress = -1
         if keypress != -1:
             if keypress == 'q' or keypress == '\033':
                 break
+            elif keypress == 'r':
+                last_time = time.time()
+                hour = min = sec = 0
+                timer_stop = False
+                last_hour = last_min = last_sec = -1
             elif keypress == ' ':
-                if timer_stop == False: timer_stop = True
-                else: timer_stop = False
+                if timer_stop == False:
+                    timer_stop = True
+                else:
+                    timer_stop = False
+                    last_hour = last_min = last_sec = -1
             elif 47 < ord(keypress) and ord(keypress) < 58 :
                 # Clear last_* variables, in order to rerender them
                 last_hour = last_min = last_sec = -1
                 win = change_text_color(win, keypress)
 
         # Timer stoped
-        if timer_stop == True: continue
+        if timer_stop == True:
+            tutil.put_text(win.center_row, win.center_col - 7, " Timer stopped ", tutil.Colors.fg.red)
+            continue
 
         # Update variables
         now = time.time()
@@ -213,7 +223,7 @@ def stopwatch(win:Term, fps:int):
             rander_digit(win, ":", 2)
             rander_digit(win, ":", 5)
 
-def countdown_timer(win:Term, fps:int, time_value:tuple):
+def countdown_timer(win:Term, delay_time:float, time_value:tuple):
     hour = time_value[0]
     min  = time_value[1]
     sec  = time_value[2]
@@ -223,10 +233,9 @@ def countdown_timer(win:Term, fps:int, time_value:tuple):
     last_time = time.time()
     while True:
         sys.stdout.flush()
-        time.sleep(1/fps)
 
         # Process key press
-        keypress = tutil.getch()
+        keypress = tutil.getch(timeout=delay_time)
         if keypress != -1:
             if keypress == 'q' or keypress == '\033':
                 break
@@ -235,6 +244,7 @@ def countdown_timer(win:Term, fps:int, time_value:tuple):
                 else: timer_stop = False
             elif keypress == 'r':
                 tutil.clear_screen()
+                last_time = time.time()
                 time_up = False
                 timer_stop = False
                 hour = time_value[0]
@@ -246,7 +256,9 @@ def countdown_timer(win:Term, fps:int, time_value:tuple):
                 win = change_text_color(win, keypress)
 
         # Timer stoped
-        if timer_stop == True: continue
+        if timer_stop == True:
+            tutil.put_text(win.center_row, win.center_col - 7, " Timer stopped ", tutil.Colors.fg.red)
+            continue
 
         # Update variables
         if sec != 0 or min != 0 or hour != 0:
@@ -295,11 +307,11 @@ def determine_mode(mode:str="timer", args:dict={}):
     tutil.cursor_invisible()
 
     if mode == "clock":
-        clock(win, 30)
+        clock(win, args["delay_time"])
     elif mode == "countdown":
-        countdown_timer(win, 60, args["time_len"])
+        countdown_timer(win, args["delay_time"], args["time_len"])
     elif mode == "stopwatch":
-        stopwatch(win, 60)
+        stopwatch(win, args["delay_time"])
 
     tutil.cursor_visible()
     tutil.clear_screen()
@@ -318,7 +330,7 @@ def main():
     group.add_argument("-cl",
                        "--clock",
                        action='store_true',
-                       help="clock mode")
+                       help="clock mode, (default mode)")
     group.add_argument("-co",
                        "--countdown",
                        nargs=3,
@@ -330,26 +342,27 @@ def main():
                        action='store_true',
                        help="stopwatch mode")
 
-    parser.add_argument("--fps",
-                        default=30,
-                        help="set fps")
+    parser.add_argument("-d",
+                        "--delay-time",
+                        default=0.2,
+                        type=float,
+                        help="set time delay (in seconds), default 0.2 seconds")
 
     args = parser.parse_args()
 
     print(args)
     main_func_args = dict()
-    main_func_args["fps"] = args.fps
+    main_func_args["delay_time"] = args.delay_time
 
     if args.clock == True:
-        pass
         determine_mode("clock", main_func_args)
     elif args.countdown != None:
-        pass
         main_func_args["time_len"] = tuple([int(x) for x in args.countdown])
         determine_mode("countdown", main_func_args)
     elif args.stopwatch == True:
-        pass
         determine_mode("stopwatch", main_func_args)
+    else:
+        determine_mode("clock", main_func_args)
 
 
 

@@ -5,26 +5,33 @@ import platform
 # https://gist.github.com/jfktrey/8928865
 # https://gist.github.com/SpotlightKid/816e12fc9dd7003f5c6b41ce0a633de2
 # https://stackoverflow.com/questions/6179537/python-wait-x-secs-for-a-key-and-continue-execution-if-not-pressed
+GETCH_DEFAULT_TIMEOUT = 0.20
 def getch(timeout=0.20):
     if platform.system() == "Windows":
         import msvcrt, time
         startTime = time.time()
+        c = -1
         while True:
             if msvcrt.kbhit():
                 c = msvcrt.getch()
-                return str(c, encoding='ascii')
+                c = str(c, encoding='ascii')
             elif time.time() - startTime > timeout:
-                return -1
+                return c
     else:
-        import sys, select, tty, termios
+        import sys, select, tty, termios, time
         fd = sys.stdin.fileno()
         old = termios.tcgetattr(fd)
         try:
+            startTime = time.time()
             tty.setcbreak(fd)
             rlist, _, _ = select.select([fd], [], [], timeout)
+            c = -1  # c would be -1 or char that was read within timeout
             if fd in rlist:
-                return sys.stdin.read(1)
-            return -1
+                c = sys.stdin.read(1)
+            # Wait until timeout, then return the value of variable c
+            while True:
+                if time.time() - startTime > timeout:
+                    return c
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
