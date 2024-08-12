@@ -1,6 +1,6 @@
 # TODO:
 # 4. add readme.md and license
-# 5. show "start" in stopwatch mode and countdown timer mode
+# 5. move main rander beflow detecting keypress ?
 
 import sys
 import time
@@ -307,11 +307,11 @@ def determine_mode(mode:str="timer", args:dict={}):
     tutil.cursor_invisible()
 
     if mode == "clock":
-        clock(win, args["delay_time"])
+        clock(win, args["update_interval"])
     elif mode == "countdown":
-        countdown_timer(win, args["delay_time"], args["time_len"])
+        countdown_timer(win, args["update_interval"], args["time_len"])
     elif mode == "stopwatch":
-        stopwatch(win, args["delay_time"])
+        stopwatch(win, args["update_interval"])
 
     tutil.cursor_visible()
     tutil.clear_screen()
@@ -342,17 +342,16 @@ def main():
                        action='store_true',
                        help="stopwatch mode")
 
-    parser.add_argument("-d",
-                        "--delay-time",
-                        default=0.2,
+    parser.add_argument("-u",
+                        "--update-interval",
+                        default=0.5,
                         type=float,
-                        help="set time delay (in seconds), default 0.2 seconds")
+                        help="set update interval (in seconds), default 0.5 seconds")
 
     args = parser.parse_args()
 
-    print(args)
     main_func_args = dict()
-    main_func_args["delay_time"] = args.delay_time
+    main_func_args["update_interval"] = args.update_interval
 
     if args.clock == True:
         determine_mode("clock", main_func_args)
