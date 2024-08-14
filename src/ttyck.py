@@ -1,12 +1,8 @@
-# TODO:
-# 4. add readme.md and license
-# 5. move main rander beflow detecting keypress ?
-
 import sys
 import time
 import argparse
-import util as tutil
 from os import get_terminal_size
+import util as tutil
 
 
 DIGITS_WIDTH = 7
@@ -26,7 +22,6 @@ DIGITS = [
     "01111110110011011111101100110111111",
     "01111110110011011111100000110000011"
 ]
-
 
 COLON = [
     "00000000001100000000000011000000000"
@@ -113,7 +108,6 @@ def rander_digit(win:Term, digit:str, pos:int):
                         tutil.put_text(srow+i, scol+ch*DIGITS_WIDTH+j, ' ')
     # Move to the text place to prevent key press's echo
     tutil.move_to(srow, scol)
-
 
 
 def clock(win:Term, delay_time:float):
